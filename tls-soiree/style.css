@@ -65,8 +65,19 @@ header .logo {
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
   padding: 1rem;
   margin-bottom: 2rem;
+  margin-left: 1rem;
+  margin-right: 1rem;
   border-radius: 1rem;
   background-color: white;
+}
+
+.basics {
+  max-width: 300px;
+}
+
+.basics strong {
+  font-weight: 900;
+  color: #880000;
 }
 
 .star-rating {
@@ -75,9 +86,6 @@ header .logo {
   padding: 0 auto;
   align-items: center;
   margin-top: 1.9rem;
-}
-
-.star-rating, .star {
   cursor: pointer;
 }
 
@@ -113,6 +121,12 @@ ul {
   margin-top: 0;
   margin-bottom: 0;
   padding-left: 1.4rem;
+}
+
+.okay {
+  width: 200px;
+  margin: 0 auto;
+  display: block;
 }
 
 @media screen and (max-width: 800px) {
