@@ -211,7 +211,17 @@
   function rate(star, clickedStar) {
     var cardElement = clickedStar.closest('.card');
     var itemElement = cardElement.querySelector('h3');
-    var item = itemElement.textContent.trim(); // Get the text content of the h3 element
+    var item = itemElement.textContent.trim();
+
+    var stars = cardElement.querySelectorAll('.star');
+
+    stars.forEach(function(starElement) {
+      starElement.style.color = '#fff'; // Change color to white
+      starElement.style.cursor = 'default'; // Change cursor to default
+      starElement.onclick = null; // Remove onclick function
+    });
+
+    clickedStar.style.color = '#dd4444';
 
     var data = { rating: star, item: item };
 
