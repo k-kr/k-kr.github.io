@@ -58,13 +58,22 @@
         }
         .alt-link {
             margin-top: 1.5rem;
+            display: inline-block;
         }
         .alt-link a {
-            color: #666;
+            color: #1f4cef;
             text-decoration: none;
         }
-        .alt-link a:hover {
-            text-decoration: underline;
+        .alt-link a:after {
+            content: '';
+            display: block;
+            width: 0;
+            height: 1.5px;
+            background: #1f4cefaa;
+            transition: width 0.2s;
+        }
+        .alt-link a:hover:after {
+            width: 100%;
         }
     </style>
 </head>

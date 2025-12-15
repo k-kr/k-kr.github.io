@@ -54,6 +54,25 @@
             font-size: 0.8rem;
             color: #999;
         }
+        .alt-link {
+            margin-top: 1.5rem;
+            display: inline-block;
+        }
+        .alt-link a {
+            color: #1f4cef;
+            text-decoration: none;
+        }
+        .alt-link a:after {
+            content: '';
+            display: block;
+            width: 0;
+            height: 1.5px;
+            background: #1f4cefaa;
+            transition: width 0.2s;
+        }
+        .alt-link a:hover:after {
+            width: 100%;
+        }
     </style>
 </head>
 <body>
@@ -65,7 +84,7 @@
         <p class="note">
             Each drag creates a unique URL so you can add multiple separators.
         </p>
-        <p class="note">
+        <p class="alt-link">
             <a href="horizontal.html">Horizontal separator</a>
         </p>
     </div>
