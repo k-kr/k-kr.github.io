@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="dark">
+    <title>Bookmarks</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h1>Bookmarks</h1>
+            </div>
+            <nav id="category-nav"></nav>
+        </aside>
+
+        <main class="main-content">
+            <header class="header">
+                <div class="search-container">
+                    <span class="material-icons search-icon">search</span>
+                    <input type="text" id="search-input" placeholder="Search bookmarks..." autocomplete="off">
+                    <kbd class="search-shortcut">/</kbd>
+                </div>
+            </header>
+
+            <div id="content-area">
+                <div id="welcome-screen" class="welcome">
+                    <span class="material-icons welcome-icon">bookmark</span>
+                    <h2>Welcome to Bookmarks</h2>
+                    <p>Select a category from the sidebar or search for a bookmark</p>
+                </div>
+
+                <div id="category-content" class="category-content hidden"></div>
+
+                <div id="search-results" class="search-results hidden"></div>
+            </div>
+        </main>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

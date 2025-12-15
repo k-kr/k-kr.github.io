@@ -1,1 +1,139 @@
-test
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome!</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #211d57 0%, #34495e 100%);
+            color: #fff;
+            text-align: center;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        h1 {
+            font-size: 5rem;
+            font-weight: 300;
+            margin-bottom: 3rem;
+        }
+
+        .enter-btn {
+            position: absolute;
+            display: inline-block;
+            padding: 15px 50px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.3rem;
+            font-weight: 500;
+            color: #2c3e50;
+            background: radial-gradient(circle at 70% 50%, #ffffff, #ffffffcc);
+            border-radius: 50px;
+            text-decoration: none;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            transition: left 0.1s ease-in-out, top 0.1s ease-in-out;
+        }
+    </style>
+</head>
+<body>
+    <h1>Welcome!</h1>
+    <a href="#" class="enter-btn" id="enterBtn">Enter</a>
+
+    <script>
+        const btn = document.getElementById('enterBtn');
+        let bounds = {};
+        let isMoving = false;
+        const minDistance = 100;
+
+        function calculateBounds() {
+            const btnRect = btn.getBoundingClientRect();
+            const boxWidth = window.innerWidth / 3;
+            const boxHeight = window.innerHeight / 3;
+            const centerX = window.innerWidth / 2;
+            const centerY = window.innerHeight / 2 + 80;
+
+            bounds = {
+                left: centerX - boxWidth / 2,
+                right: centerX + boxWidth / 2 - btnRect.width,
+                top: centerY - boxHeight / 2,
+                bottom: centerY + boxHeight / 2 - btnRect.height
+            };
+        }
+
+        function centerButton() {
+            const btnRect = btn.getBoundingClientRect();
+            btn.style.left = (window.innerWidth / 2 - btnRect.width / 2) + 'px';
+            btn.style.top = (window.innerHeight / 2 + 80) + 'px';
+            calculateBounds();
+        }
+
+        function getDistance(x1, y1, x2, y2) {
+            return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+        }
+
+        function getNewPosition() {
+            const currentX = parseFloat(btn.style.left);
+            const currentY = parseFloat(btn.style.top);
+
+            let newX, newY, attempts = 0;
+
+            do {
+                newX = Math.random() * (bounds.right - bounds.left) + bounds.left;
+                newY = Math.random() * (bounds.bottom - bounds.top) + bounds.top;
+                attempts++;
+            } while (getDistance(currentX, currentY, newX, newY) < minDistance && attempts < 20);
+
+            return { x: newX, y: newY };
+        }
+
+        function moveButton() {
+            if (isMoving) return;
+
+            isMoving = true;
+            const { x, y } = getNewPosition();
+
+            btn.style.left = x + 'px';
+            btn.style.top = y + 'px';
+
+            setTimeout(() => {
+                isMoving = false;
+            }, 150);
+        }
+
+        centerButton();
+
+        document.addEventListener('mousemove', (e) => {
+            const btnRect = btn.getBoundingClientRect();
+            const btnCenterX = btnRect.left + btnRect.width / 2;
+            const btnCenterY = btnRect.top + btnRect.height / 2;
+
+            if (getDistance(e.clientX, e.clientY, btnCenterX, btnCenterY) < 100) {
+                moveButton();
+            }
+        });
+
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            moveButton();
+        });
+
+        window.addEventListener('resize', centerButton);
+    </script>
+</body>
+</html>
