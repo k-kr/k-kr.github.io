@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>|</title>
+    <title>Bookmarks Separator</title>
     <link rel="icon" type="image/svg+xml" href="favicon-sep.svg">
     <style>
         * {
@@ -27,19 +27,19 @@
         }
         .separator-link {
             display: inline-block;
-            font-size: 3rem;
-            color: #3a3a3a;
-            text-decoration: none;
-            padding: 1rem 2rem;
+            width: 80px;
+            height: 80px;
             border: 2px dashed #ccc;
             border-radius: 8px;
             margin-bottom: 1.5rem;
             cursor: grab;
             transition: border-color 0.2s, background 0.2s;
+            background: url('favicon-sep.svg') center center no-repeat;
+            background-size: 32px 32px;
         }
         .separator-link:hover {
             border-color: #888;
-            background: #fff;
+            background-color: #fff;
         }
         .separator-link:active {
             cursor: grabbing;
@@ -58,7 +58,7 @@
 </head>
 <body>
     <div class="container">
-        <a id="sep" class="separator-link" href="#">|</a>
+        <a id="sep" class="separator-link" href="#"></a>
         <p class="instructions">
             Drag this to your bookmarks bar to add a separator.
         </p>
@@ -68,18 +68,17 @@
     </div>
     <script>
         const link = document.getElementById('sep');
-        const base = window.location.origin + window.location.pathname;
 
-        function updateLink() {
-            link.href = base + '#' + Date.now();
+        function refreshHash() {
+            const key = `sep-${crypto.randomUUID()}`;
+            link.href = `?#${key}`;
+            window.location.replace(`#${key}`);
         }
 
-        updateLink();
-        link.addEventListener('click', (e) => {
-            e.preventDefault();
-            updateLink();
+        refreshHash();
+        link.addEventListener('mousedown', (e) => {
+            if (e.button === 0) refreshHash();
         });
-        link.addEventListener('dragstart', updateLink);
     </script>
 </body>
 </html>
