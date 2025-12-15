@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>|</title>
+    <link rel="icon" type="image/svg+xml" href="favicon-sep.svg">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: #f5f5f5;
+            color: #333;
+        }
+        .container {
+            text-align: center;
+            padding: 2rem;
+        }
+        .separator-link {
+            display: inline-block;
+            font-size: 3rem;
+            color: #3a3a3a;
+            text-decoration: none;
+            padding: 1rem 2rem;
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            cursor: grab;
+            transition: border-color 0.2s, background 0.2s;
+        }
+        .separator-link:hover {
+            border-color: #888;
+            background: #fff;
+        }
+        .separator-link:active {
+            cursor: grabbing;
+        }
+        .instructions {
+            color: #666;
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+        .note {
+            margin-top: 1rem;
+            font-size: 0.8rem;
+            color: #999;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a id="sep" class="separator-link" href="#">|</a>
+        <p class="instructions">
+            Drag this to your bookmarks bar to add a separator.
+        </p>
+        <p class="note">
+            Each drag creates a unique URL so you can add multiple separators.
+        </p>
+    </div>
+    <script>
+        const link = document.getElementById('sep');
+        const base = window.location.origin + window.location.pathname;
+
+        function updateLink() {
+            link.href = base + '#' + Date.now();
+        }
+
+        updateLink();
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            updateLink();
+        });
+        link.addEventListener('dragstart', updateLink);
+    </script>
+</body>
+</html>
