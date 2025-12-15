@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bookmarks Separator</title>
-    <link rel="icon" type="image/svg+xml" href="favicon-sep.svg">
+    <title>Horizontal Separator</title>
+    <link rel="icon" type="image/svg+xml" href="favicon-blank.svg">
     <style>
         * {
             margin: 0;
@@ -36,6 +36,8 @@
             transition: border-color 0.2s, background 0.2s;
             background: url('favicon-sep.svg') center center no-repeat;
             background-size: 32px 32px;
+            transform: rotate(90deg);
+            font-size: 0;
         }
         .separator-link:hover {
             border-color: #888;
@@ -54,19 +56,29 @@
             font-size: 0.8rem;
             color: #999;
         }
+        .alt-link {
+            margin-top: 1.5rem;
+        }
+        .alt-link a {
+            color: #666;
+            text-decoration: none;
+        }
+        .alt-link a:hover {
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <a id="sep" class="separator-link" href="#"></a>
+        <a id="sep" class="separator-link" href="#">┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄</a>
         <p class="instructions">
-            Drag this to your bookmarks bar to add a separator.
+            Drag this to your bookmarks bar to add a horizontal separator.
         </p>
         <p class="note">
             Each drag creates a unique URL so you can add multiple separators.
         </p>
-        <p class="note">
-            <a href="horizontal.html">Horizontal separator</a>
+        <p class="alt-link">
+            <a href="index.html">Vertical separator</a>
         </p>
     </div>
     <script>
