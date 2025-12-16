@@ -7,11 +7,52 @@ async function loadBookmarks() {
         const response = await fetch('bookmarks.json');
         const data = await response.json();
         bookmarks = data.bookmarks;
+        applyFiltersFromURL();
         render();
         setupEventListeners();
     } catch (error) {
         console.error('Error loading bookmarks:', error);
     }
+}
+
+function applyFiltersFromURL() {
+    const params = new URLSearchParams(window.location.search);
+    const queryParam = params.get('q') || '';
+    searchQuery = queryParam;
+
+    const searchInput = document.getElementById('search-input');
+    if (searchInput) {
+        searchInput.value = queryParam;
+    }
+
+    const tagValues = params.getAll('tag');
+    const parsedTags = new Set();
+    tagValues.forEach(value => {
+        value.split(',').forEach(tag => {
+            const trimmed = tag.trim();
+            if (trimmed) parsedTags.add(trimmed);
+        });
+    });
+
+    selectedTags = parsedTags;
+}
+
+function updateURLParams() {
+    const params = new URLSearchParams();
+    const trimmedQuery = searchQuery.trim();
+    if (trimmedQuery) {
+        params.set('q', trimmedQuery);
+    }
+
+    if (selectedTags.size > 0) {
+        [...selectedTags].sort((a, b) => a.localeCompare(b)).forEach(tag => {
+            params.append('tag', tag);
+        });
+    }
+
+    const queryString = params.toString();
+    const newUrl = queryString ? `${window.location.pathname}?${queryString}` : window.location.pathname;
+    window.history.replaceState({}, '', newUrl);
 }
 
 function getAllTags(bookmarkList) {
@@ -231,11 +272,13 @@ function toggleTag(tag) {
     } else {
         selectedTags.add(tag);
     }
+    updateURLParams();
     render();
 }
 
 function clearFilters() {
     selectedTags.clear();
+    updateURLParams();
     render();
 }
 
@@ -292,6 +335,7 @@ function setupEventListeners() {
         clearTimeout(debounceTimer);
         debounceTimer = setTimeout(() => {
             searchQuery = e.target.value;
+            updateURLParams();
             render();
         }, 150);
     });
@@ -329,6 +373,7 @@ function setupEventListeners() {
             } else if (searchInput.value) {
                 searchInput.value = '';
                 searchQuery = '';
+                updateURLParams();
                 render();
             }
             searchInput.blur();
