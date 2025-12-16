@@ -15,8 +15,9 @@
         <aside class="sidebar">
             <div class="sidebar-header">
                 <h1>Bookmarks</h1>
+                <button id="clear-filters" class="clear-filters hidden">Clear</button>
             </div>
-            <nav id="category-nav"></nav>
+            <nav id="tag-list"></nav>
         </aside>
 
         <main class="main-content">
@@ -29,15 +30,11 @@
             </header>
 
             <div id="content-area">
-                <div id="welcome-screen" class="welcome">
-                    <span class="material-icons welcome-icon">bookmark</span>
-                    <h2>Welcome to Bookmarks</h2>
-                    <p>Select a category from the sidebar or search for a bookmark</p>
+                <div id="bookmarks-grid" class="bookmarks-grid"></div>
+                <div id="no-results" class="no-results hidden">
+                    <span class="material-icons">search_off</span>
+                    <p>No bookmarks match your filters</p>
                 </div>
-
-                <div id="category-content" class="category-content hidden"></div>
-
-                <div id="search-results" class="search-results hidden"></div>
             </div>
         </main>
     </div>
