@@ -29,6 +29,7 @@ function getFilteredBookmarks() {
         filtered = filtered.filter(b =>
             b.title.toLowerCase().includes(q) ||
             b.url.toLowerCase().includes(q) ||
+            (b.description && b.description.toLowerCase().includes(q)) ||
             b.tags.some(t => t.toLowerCase().includes(q))
         );
     }
@@ -116,14 +117,17 @@ function groupBookmarks(bookmarkList) {
 function renderBookmarkCard(link) {
     const host = new URL(link.url).hostname;
     const title = searchQuery ? highlightMatch(link.title, searchQuery) : link.title;
+    const desc = link.description || '';
     return `
         <a href="${link.url}" class="link-card" target="_blank" rel="noopener noreferrer">
+            ${desc ? `<span class="link-tooltip">${desc}</span>` : ''}
             <div class="link-favicon" aria-hidden="true">
                 <img data-favicon src="https://www.google.com/s2/favicons?domain=${host}&sz=32" alt="" loading="lazy">
             </div>
             <div class="link-info">
                 <span class="link-title">${title}</span>
                 <span class="link-url">${host}</span>
+                ${desc ? `<span class="link-description">${desc}</span>` : ''}
                 <span class="link-tags">${link.tags.map(t =>
                     `<span class="link-tag${selectedTags.has(t) ? ' active' : ''}">${t}</span>`
                 ).join('')}</span>
@@ -143,20 +147,20 @@ function renderBookmarks() {
     if (filtered.length === 0) {
         grid.classList.add('hidden');
         noResults.classList.remove('hidden');
+        document.getElementById('bookmark-count').textContent = '0 bookmarks';
         return;
     }
 
     grid.classList.remove('hidden');
     noResults.classList.add('hidden');
 
+    // Update sidebar title with count
+    document.getElementById('bookmark-count').textContent = `${filtered.length} bookmark${filtered.length !== 1 ? 's' : ''}`;
+
     const grouped = groupBookmarks(filtered);
     const sortedCategories = Object.keys(grouped).sort((a, b) => a.localeCompare(b));
 
-    let html = `
-        <div class="results-header">
-            <span class="result-count">${filtered.length} bookmark${filtered.length !== 1 ? 's' : ''}</span>
-        </div>
-    `;
+    let html = '';
 
     sortedCategories.forEach(category => {
         const catData = grouped[category];
