@@ -103,18 +103,14 @@ function renderTagList() {
     // Get all tags from full bookmark set for initial display
     const allTags = getAllTags(bookmarks);
 
-    // Sort tags by count (descending), then alphabetically
-    const sortedTags = [...allTags]
+    const tagData = [...allTags]
         .map(tag => ({ tag, count: counts[tag] || 0 }))
-        .filter(({ count }) => selectedTags.size === 0 || count > 0 || selectedTags.has(count))
         .filter(({ tag, count }) => {
-            // Always show selected tags, hide others with 0 count when filtering
             if (selectedTags.has(tag)) return true;
             if (selectedTags.size > 0 && count === 0) return false;
             return true;
         })
         .sort((a, b) => {
-            // Selected tags first, then by count, then alphabetically
             const aSelected = selectedTags.has(a.tag) ? 1 : 0;
             const bSelected = selectedTags.has(b.tag) ? 1 : 0;
             if (aSelected !== bSelected) return bSelected - aSelected;
@@ -122,12 +118,17 @@ function renderTagList() {
             return a.tag.localeCompare(b.tag);
         });
 
-    nav.innerHTML = sortedTags.map(({ tag, count }) => `
-        <button class="tag-item${selectedTags.has(tag) ? ' selected' : ''}" data-tag="${tag}">
+    const maxCount = tagData.reduce((max, { count }) => Math.max(max, count), 0);
+
+    nav.innerHTML = tagData.map(({ tag, count }) => {
+        const fill = maxCount > 0 ? Math.round((count / maxCount) * 100) : 0;
+        return `
+        <button class="tag-item${selectedTags.has(tag) ? ' selected' : ''}" data-tag="${tag}" style="--tag-fill: ${fill}%">
             <span class="tag-label">${tag}</span>
             <span class="tag-count">${count}</span>
         </button>
-    `).join('');
+    `;
+    }).join('');
 
     // Update clear button visibility
     const clearBtn = document.getElementById('clear-filters');
