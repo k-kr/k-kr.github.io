@@ -536,7 +536,14 @@ a {
   color: rgba(147, 197, 253, 0.9);
 }
 
-/* Square action on right (matches screenshot feel) */
+/* Action buttons on right */
+.link-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
 .link-action {
   width: 34px;
   height: 34px;
@@ -546,6 +553,9 @@ a {
   border: 1px solid rgba(255, 255, 255, 0.08);
   background: rgba(255, 255, 255, 0.02);
   transition: border-color var(--transition), background var(--transition), transform var(--transition-fast);
+  cursor: pointer;
+  font-family: inherit;
+  padding: 0;
 }
 
 .link-action .material-icons {
@@ -553,17 +563,26 @@ a {
   color: rgba(255, 255, 255, 0.46);
 }
 
-.link-card:hover .link-action {
+.link-action:hover {
   border-color: rgba(59, 130, 246, 0.35);
   background: rgba(59, 130, 246, 0.08);
 }
 
-.link-card:hover .link-action .material-icons {
+.link-action:hover .material-icons {
   color: rgba(147, 197, 253, 0.95);
 }
 
-.link-card:active .link-action {
+.link-action:active {
   transform: translateY(1px);
+}
+
+.copy-btn:hover {
+  border-color: rgba(34, 197, 94, 0.5);
+  background: rgba(34, 197, 94, 0.12);
+}
+
+.copy-btn:hover .material-icons {
+  color: rgba(134, 239, 172, 0.95);
 }
 
 /* Bookmarks grid */

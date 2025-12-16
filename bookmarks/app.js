@@ -119,7 +119,7 @@ function renderBookmarkCard(link) {
     const title = searchQuery ? highlightMatch(link.title, searchQuery) : link.title;
     const desc = link.description || '';
     return `
-        <a href="${link.url}" class="link-card" target="_blank" rel="noopener noreferrer">
+        <a href="${link.url}" class="link-card">
             ${desc ? `<span class="link-tooltip">${desc}</span>` : ''}
             <div class="link-favicon" aria-hidden="true">
                 <img data-favicon src="https://www.google.com/s2/favicons?domain=${host}&sz=32" alt="" loading="lazy">
@@ -132,11 +132,35 @@ function renderBookmarkCard(link) {
                     `<span class="link-tag${selectedTags.has(t) ? ' active' : ''}">${t}</span>`
                 ).join('')}</span>
             </div>
-            <span class="link-action" aria-hidden="true">
-                <span class="material-icons">open_in_new</span>
-            </span>
+            <div class="link-actions">
+                <button class="link-action open-new-btn" data-url="${link.url}" aria-label="Open in new tab">
+                    <span class="material-icons">open_in_new</span>
+                </button>
+                <button class="link-action copy-btn" data-url="${link.url}" data-title="${link.title.replace(/"/g, '&quot;')}" aria-label="Copy link">
+                    <span class="material-icons">link</span>
+                </button>
+            </div>
         </a>
     `;
+}
+
+async function copyLink(url, title) {
+    const html = `<a href="${url}">${title}</a>`;
+    const text = url;
+
+    try {
+        await navigator.clipboard.write([
+            new ClipboardItem({
+                'text/html': new Blob([html], { type: 'text/html' }),
+                'text/plain': new Blob([text], { type: 'text/plain' })
+            })
+        ]);
+        return true;
+    } catch {
+        // Fallback for browsers that don't support ClipboardItem
+        await navigator.clipboard.writeText(url);
+        return true;
+    }
 }
 
 function renderBookmarks() {
@@ -270,6 +294,31 @@ function setupEventListeners() {
             searchQuery = e.target.value;
             render();
         }, 150);
+    });
+
+    // Action button handlers (delegated)
+    document.getElementById('bookmarks-grid').addEventListener('click', async (e) => {
+        const openNewBtn = e.target.closest('.open-new-btn');
+        if (openNewBtn) {
+            e.preventDefault();
+            e.stopPropagation();
+            window.open(openNewBtn.dataset.url, '_blank', 'noopener,noreferrer');
+            return;
+        }
+
+        const copyBtn = e.target.closest('.copy-btn');
+        if (copyBtn) {
+            e.preventDefault();
+            e.stopPropagation();
+            const { url, title } = copyBtn.dataset;
+            await copyLink(url, title);
+            // Visual feedback
+            const icon = copyBtn.querySelector('.material-icons');
+            icon.textContent = 'check';
+            setTimeout(() => {
+                icon.textContent = 'link';
+            }, 1500);
+        }
     });
 
     // Keyboard shortcuts
