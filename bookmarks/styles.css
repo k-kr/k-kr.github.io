@@ -20,6 +20,7 @@
     --accent: #3b82f6;
     --accent-mark: #3b82f69f;
     --accent-hover: #2563eb;
+    --accent-border: #b4cffb;
     --ring: rgba(59, 130, 246, 0.55);
 
     --radius-sm: 8px;
@@ -217,6 +218,11 @@ a {
     background: rgba(59, 130, 246, 0.2);
 }
 
+.tag-item:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+}
+
 .tag-label {
     flex: 1;
     min-width: 0;
@@ -224,6 +230,12 @@ a {
     overflow: hidden;
     text-overflow: ellipsis;
     transition: transform var(--transition-fast);
+}
+
+.tag-label::before {
+    content: "#";
+    opacity: .5;
+    margin-right: 2px;
 }
 
 .tag-item:hover .tag-label {
@@ -417,6 +429,11 @@ a {
     transform: scale(0.97);
 }
 
+.filter-pill:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+}
+
 /* Section pills - green tint to differentiate */
 .filter-pill.section-pill {
     background: rgba(34, 197, 94, 0.06);
@@ -583,6 +600,23 @@ a {
     border-color: rgba(59, 130, 246, 0.55);
 }
 
+/* Position badges for keyboard shortcuts */
+.position-badge {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    padding: 3px 7px;
+    display: grid;
+    place-items: center;
+    font-size: 0.65rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.5);
+    background: rgba(255, 255, 255, 0.06);
+    border-radius: 8px;
+    pointer-events: none;
+    white-space: nowrap;
+}
+
 .link-left {
     display: flex;
     flex-direction: column;
@@ -683,8 +717,10 @@ a {
     width: 36px;
     height: 36px;
     border-radius: 10px;
-    display: grid;
-    place-items: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
     border: 1px solid rgba(255, 255, 255, 0.12);
     background: rgba(255, 255, 255, 0.03);
     transition:
@@ -698,8 +734,39 @@ a {
     opacity: 0;
 }
 
+.copy-btn::before {
+    content: "C";
+    font-size: 8px;
+    font-weight: 800;
+    color: rgba(255, 255, 255, 0.85);
+    background: var(--bg-primary);
+    position: absolute;
+    margin: 24px 0 0 36px;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 4px;
+    height:16px;
+    width:16px;
+    display: grid;
+    align-items: center;
+    transition: var(--transition);
+    transition-delay: 20ms;
+    opacity: 0;
+}
+
 .link-card:hover>.link-left>.copy-btn {
     opacity: 1;
+}
+
+.link-card:focus-visible>.link-left>.copy-btn {
+    opacity: 1;
+}
+
+.link-card:focus-visible>.link-left>.copy-btn::before {
+    opacity: 1;
+}
+
+.link-card:focus-visible>.link-left>.copy-btn:not(:hover) .material-icons {
+    color: rgba(255, 255, 255, 0.35);
 }
 
 .copy-btn .material-icons {
@@ -812,6 +879,116 @@ mark {
     border-radius: 6px;
     padding: 1px 3px;
     margin: -1px -3px;
+}
+
+/* Help overlay */
+#help-overlay {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1000;
+}
+
+.help-trigger {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font-size: 1.1rem;
+    font-weight: 600;
+    font-family: inherit;
+    color: white;
+    background: var(--accent);
+    border: 1px solid var(--accent-border);
+    cursor: pointer;
+    transition: var(--transition);
+    opacity: .6;
+}
+
+.help-trigger:hover {
+    opacity: 1;
+}
+
+#help-overlay.visible .help-trigger {
+    opacity: 0;
+    visibility: hidden;
+    transform: scale(0.8);
+}
+
+.help-content {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    background: rgba(30, 45, 85, 0.55);
+    backdrop-filter: blur(35px);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: var(--radius-lg);
+    padding: 16px 20px;
+    box-shadow: var(--shadow-sm);
+    min-width: 260px;
+    opacity: 0;
+    visibility: hidden;
+    transform: scale(0.9) translateY(10px);
+    transform-origin: bottom right;
+    transition: opacity var(--transition), visibility var(--transition), transform var(--transition);
+}
+
+#help-overlay.visible .help-content {
+    opacity: 1;
+    visibility: visible;
+    transform: scale(1) translateY(0);
+}
+
+.help-content h3 {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.help-section {
+    margin-bottom: 12px;
+}
+
+.help-section:last-child {
+    margin-bottom: 0;
+}
+
+.help-section h4 {
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+}
+
+.help-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 0;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.help-row kbd {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 5px;
+    font-size: 0.7rem;
+    font-family: inherit;
+    font-weight: 500;
+    color: var(--text-primary);
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 4px;
 }
 
 /* Reduced motion */
@@ -991,5 +1168,9 @@ mark {
 
     .copy-btn {
         opacity: 1;
+    }
+
+    #help-overlay {
+        display: none;
     }
 }

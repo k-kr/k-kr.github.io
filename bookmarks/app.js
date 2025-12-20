@@ -3,6 +3,7 @@ let selectedTags = new Set();
 let searchQuery = '';
 let selectedCategory = null;  // null = "All"
 let selectedSection = null;
+const isMac = /Mac|iPhone|iPad|iPod/.test(navigator.userAgent);
 
 async function loadBookmarks() {
     try {
@@ -205,12 +206,14 @@ function groupBookmarks(bookmarkList) {
     return grouped;
 }
 
-function renderBookmarkCard(link) {
+function renderBookmarkCard(link, index) {
     const host = new URL(link.url).hostname;
     const title = searchQuery ? highlightMatch(link.title, searchQuery) : link.title;
     const desc = link.description || '';
+    const badge = index < 9 ? `<span class="position-badge">${isMac ? '⌥' : 'Alt+'}${index + 1}</span>` : '';
     return `
         <a href="${link.url}" class="link-card" target="_blank" rel="noopener noreferrer">
+            ${badge}
             <div class="link-left">
                 <div class="link-favicon" aria-hidden="true">
                     <img data-favicon src="https://www.google.com/s2/favicons?domain=${host}&sz=32" alt="" loading="lazy">
@@ -272,6 +275,7 @@ function renderBookmarks() {
     const sortedCategories = Object.keys(grouped).sort((a, b) => a.localeCompare(b));
 
     let html = '';
+    let cardIndex = 0;
 
     sortedCategories.forEach(category => {
         const catData = grouped[category];
@@ -283,7 +287,7 @@ function renderBookmarks() {
             const sorted = catData.noSection.sort((a, b) => a.title.localeCompare(b.title));
             html += `<div class="links-grid">`;
             sorted.forEach(link => {
-                html += renderBookmarkCard(link);
+                html += renderBookmarkCard(link, cardIndex++);
             });
             html += `</div>`;
         }
@@ -295,7 +299,7 @@ function renderBookmarks() {
             html += `<h2 class="section-heading">${section}</h2>`;
             html += `<div class="links-grid">`;
             sectionBookmarks.forEach(link => {
-                html += renderBookmarkCard(link);
+                html += renderBookmarkCard(link, cardIndex++);
             });
             html += `</div>`;
         });
@@ -492,14 +496,23 @@ function setupEventListeners() {
             const icon = copyBtn.querySelector('.material-icons');
             icon.textContent = 'check';
             setTimeout(() => {
-                icon.textContent = 'link';
+                icon.textContent = 'content_copy';
             }, 1500);
         }
     });
 
     // Keyboard shortcuts
     document.addEventListener('keydown', (e) => {
+        const cards = document.querySelectorAll('.link-card');
+        const isInSearch = document.activeElement === searchInput;
+
+        // Escape - close help, clear filters, or blur search
         if (e.key === 'Escape') {
+            const helpOverlay = document.getElementById('help-overlay');
+            if (helpOverlay?.classList.contains('visible')) {
+                helpOverlay.classList.remove('visible');
+                return;
+            }
             const hasAnyFilter = selectedTags.size > 0 || selectedCategory || searchQuery.trim();
             if (hasAnyFilter) {
                 clearFilters();
@@ -508,14 +521,90 @@ function setupEventListeners() {
             return;
         }
 
-        if (isEditableTarget(e.target) || document.activeElement === searchInput) return;
+        // Enter in search - open first result
+        if (e.key === 'Enter' && isInSearch && cards.length > 0) {
+            e.preventDefault();
+            window.open(cards[0].href, '_blank', 'noopener,noreferrer');
+            return;
+        }
 
+        // Skip other shortcuts if in editable field
+        if (isEditableTarget(e.target) || isInSearch) return;
+
+        // Alt/Option + 1-9 - open card at position
+        if (e.altKey && e.key >= '1' && e.key <= '9') {
+            const index = parseInt(e.key) - 1;
+            if (cards[index]) {
+                e.preventDefault();
+                window.open(cards[index].href, '_blank', 'noopener,noreferrer');
+            }
+            return;
+        }
+
+        // Arrow keys - navigate within current context
+        if (['ArrowDown', 'ArrowUp', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+            e.preventDefault();
+            const focused = document.activeElement;
+
+            // Navigate within tag panel
+            if (focused.classList.contains('tag-item')) {
+                navigatePanel('.tag-item', e.key);
+                return;
+            }
+
+            // Navigate within filter pills
+            if (focused.classList.contains('filter-pill')) {
+                navigatePanel('.filter-pill', e.key);
+                return;
+            }
+
+            // Default: navigate cards
+            navigateCards(e.key, cards);
+            return;
+        }
+
+        // c - copy focused card's link
+        if (e.key === 'c') {
+            const focused = document.activeElement;
+            if (focused.classList.contains('link-card')) {
+                e.preventDefault();
+                const copyBtn = focused.querySelector('.copy-btn');
+                if (copyBtn) copyBtn.click();
+            }
+            return;
+        }
+
+        // t - focus tag panel
+        if (e.key === 't') {
+            e.preventDefault();
+            const firstTag = document.querySelector('.tag-item');
+            if (firstTag) firstTag.focus();
+            return;
+        }
+
+        // f - focus category filter
+        if (e.key === 'f') {
+            e.preventDefault();
+            const firstPill = document.querySelector('.filter-pill');
+            if (firstPill) firstPill.focus();
+            return;
+        }
+
+        // ? - toggle help overlay
+        if (e.key === '?') {
+            e.preventDefault();
+            toggleHelpOverlay();
+            return;
+        }
+
+        // / - focus search
         if (e.key === '/') {
             e.preventDefault();
             searchInput.focus();
             return;
         }
 
+        // Printable keys - start typing in search
         if (isPrintableKey(e)) {
             e.preventDefault();
             searchInput.focus();
@@ -524,5 +613,151 @@ function setupEventListeners() {
         }
     });
 }
+
+// Navigate between cards with arrow keys
+function navigateCards(key, cards) {
+    if (cards.length === 0) return;
+
+    const focused = document.activeElement;
+    const cardsArray = Array.from(cards);
+    let currentIndex = cardsArray.indexOf(focused);
+
+    // If no card focused, start from first
+    if (currentIndex === -1) {
+        cards[0].focus();
+        cards[0].scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+        return;
+    }
+
+    let nextIndex = currentIndex;
+
+    // Left/Right: sequential navigation
+    if (key === 'ArrowRight') {
+        nextIndex = Math.min(currentIndex + 1, cards.length - 1);
+    } else if (key === 'ArrowLeft') {
+        nextIndex = Math.max(currentIndex - 1, 0);
+    } else if (key === 'ArrowDown' || key === 'ArrowUp') {
+        // Up/Down: find visually adjacent card using bounding rects
+        const currentRect = focused.getBoundingClientRect();
+        const currentCenterX = currentRect.left + currentRect.width / 2;
+        const currentCenterY = currentRect.top + currentRect.height / 2;
+
+        let bestIndex = -1;
+        let bestDistance = Infinity;
+
+        cardsArray.forEach((card, index) => {
+            if (index === currentIndex) return;
+            const rect = card.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+
+            // Check if card is in the right direction
+            const isBelow = key === 'ArrowDown' && rect.top > currentRect.bottom - 5;
+            const isAbove = key === 'ArrowUp' && rect.bottom < currentRect.top + 5;
+
+            if (isBelow || isAbove) {
+                // Prefer cards with similar horizontal position
+                const horizontalDist = Math.abs(centerX - currentCenterX);
+                const verticalDist = Math.abs(centerY - currentCenterY);
+                // Weight horizontal distance more to prefer same-column cards
+                const distance = horizontalDist * 2 + verticalDist;
+
+                if (distance < bestDistance) {
+                    bestDistance = distance;
+                    bestIndex = index;
+                }
+            }
+        });
+
+        if (bestIndex !== -1) {
+            nextIndex = bestIndex;
+        }
+    }
+
+    if (nextIndex !== currentIndex) {
+        cards[nextIndex].focus();
+        cards[nextIndex].scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }
+}
+
+// Navigate within a panel (tags or filter pills)
+function navigatePanel(selector, key) {
+    const items = document.querySelectorAll(selector);
+    if (items.length === 0) return;
+
+    const focused = document.activeElement;
+    let currentIndex = Array.from(items).indexOf(focused);
+
+    if (currentIndex === -1) return;
+
+    let nextIndex = currentIndex;
+
+    if (key === 'ArrowDown' || key === 'ArrowRight') {
+        nextIndex = Math.min(currentIndex + 1, items.length - 1);
+    } else if (key === 'ArrowUp' || key === 'ArrowLeft') {
+        nextIndex = Math.max(currentIndex - 1, 0);
+    }
+
+    if (nextIndex !== currentIndex) {
+        items[nextIndex].focus();
+        items[nextIndex].scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }
+}
+
+// Toggle help overlay
+function toggleHelpOverlay() {
+    let overlay = document.getElementById('help-overlay');
+    if (!overlay) {
+        overlay = createHelpOverlay();
+        document.body.appendChild(overlay);
+    }
+    overlay.classList.toggle('visible');
+}
+
+function createHelpOverlay() {
+    const overlay = document.createElement('div');
+    overlay.id = 'help-overlay';
+    overlay.innerHTML = `
+        <button class="help-trigger" aria-label="Keyboard shortcuts"><span class="material-icons">keyboard</span></button>
+        <div class="help-content">
+            <h3>Keyboard Shortcuts</h3>
+            <div class="help-section">
+                <h4>Quick Actions</h4>
+                <div class="help-row"><kbd>/</kbd> <span>Focus search</span></div>
+                <div class="help-row"><kbd>${isMac ? '⌥' : 'Alt+'}</kbd><kbd>1</kbd>-<kbd>9</kbd> <span>Open result #</span></div>
+                <div class="help-row"><kbd>Enter</kbd> <span>Open first result (in search)</span></div>
+                <div class="help-row"><kbd>Esc</kbd> <span>Clear filters / close</span></div>
+            </div>
+            <div class="help-section">
+                <h4>Navigation</h4>
+                <div class="help-row"><kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> <span>Navigate</span></div>
+                <div class="help-row"><kbd>Enter</kbd> <span>Open focused card</span></div>
+                <div class="help-row"><kbd>c</kbd> <span>Copy focused link</span></div>
+            </div>
+            <div class="help-section">
+                <h4>Filters</h4>
+                <div class="help-row"><kbd>t</kbd> <span>Focus tags</span></div>
+                <div class="help-row"><kbd>f</kbd> <span>Focus categories</span></div>
+            </div>
+        </div>
+    `;
+    // Click trigger button to toggle
+    overlay.querySelector('.help-trigger').addEventListener('click', () => {
+        overlay.classList.toggle('visible');
+    });
+    // Click outside to close
+    document.addEventListener('click', (e) => {
+        if (overlay.classList.contains('visible') && !overlay.contains(e.target)) {
+            overlay.classList.remove('visible');
+        }
+    });
+    return overlay;
+}
+
+// Create help overlay on load
+document.addEventListener('DOMContentLoaded', () => {
+    const overlay = createHelpOverlay();
+    document.body.appendChild(overlay);
+});
 
 document.addEventListener('DOMContentLoaded', loadBookmarks);
