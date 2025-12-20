@@ -1,6 +1,8 @@
 let bookmarks = [];
 let selectedTags = new Set();
 let searchQuery = '';
+let selectedCategory = null;  // null = "All"
+let selectedSection = null;
 
 async function loadBookmarks() {
     try {
@@ -25,6 +27,15 @@ function applyFiltersFromURL() {
         searchInput.value = queryParam;
     }
 
+    // Category and section from URL
+    selectedCategory = params.get('category') || null;
+    selectedSection = params.get('section') || null;
+
+    // Validate: section requires matching category
+    if (selectedSection && !selectedCategory) {
+        selectedSection = null;
+    }
+
     const tagValues = params.getAll('tag');
     const parsedTags = new Set();
     tagValues.forEach(value => {
@@ -44,6 +55,14 @@ function updateURLParams() {
         params.set('q', trimmedQuery);
     }
 
+    // Add category and section to URL
+    if (selectedCategory) {
+        params.set('category', selectedCategory);
+    }
+    if (selectedSection) {
+        params.set('section', selectedSection);
+    }
+
     if (selectedTags.size > 0) {
         [...selectedTags].sort((a, b) => a.localeCompare(b)).forEach(tag => {
             params.append('tag', tag);
@@ -61,10 +80,38 @@ function getAllTags(bookmarkList) {
     return tagSet;
 }
 
+function getAllCategories() {
+    const categorySet = new Set();
+    bookmarks.forEach(b => {
+        if (b.category) categorySet.add(b.category);
+    });
+    return [...categorySet].sort((a, b) => a.localeCompare(b));
+}
+
+function getSectionsForCategory(category) {
+    const sectionSet = new Set();
+    bookmarks.forEach(b => {
+        if (b.category === category && b.section) {
+            sectionSet.add(b.section);
+        }
+    });
+    return [...sectionSet].sort((a, b) => a.localeCompare(b));
+}
+
 function getFilteredBookmarks() {
     let filtered = bookmarks;
 
-    // Apply search filter first
+    // Apply category filter
+    if (selectedCategory) {
+        filtered = filtered.filter(b => b.category === selectedCategory);
+    }
+
+    // Apply section filter (only if category is selected)
+    if (selectedCategory && selectedSection) {
+        filtered = filtered.filter(b => b.section === selectedSection);
+    }
+
+    // Apply search filter
     if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase();
         filtered = filtered.filter(b =>
@@ -107,7 +154,8 @@ function renderTagList() {
         .map(tag => ({ tag, count: counts[tag] || 0 }))
         .filter(({ tag, count }) => {
             if (selectedTags.has(tag)) return true;
-            if (selectedTags.size > 0 && count === 0) return false;
+            const hasActiveFilters = selectedTags.size > 0 || selectedCategory || searchQuery.trim();
+            if (hasActiveFilters && count === 0) return false;
             return true;
         })
         .sort((a, b) => {
@@ -132,7 +180,8 @@ function renderTagList() {
 
     // Update clear button visibility
     const clearBtn = document.getElementById('clear-filters');
-    clearBtn.classList.toggle('hidden', selectedTags.size === 0);
+    const hasFilters = selectedTags.size > 0 || selectedCategory !== null || searchQuery.trim();
+    clearBtn.classList.toggle('hidden', !hasFilters);
 }
 
 function groupBookmarks(bookmarkList) {
@@ -161,10 +210,14 @@ function renderBookmarkCard(link) {
     const title = searchQuery ? highlightMatch(link.title, searchQuery) : link.title;
     const desc = link.description || '';
     return `
-        <a href="${link.url}" class="link-card">
-            ${desc ? `<span class="link-tooltip">${desc}</span>` : ''}
-            <div class="link-favicon" aria-hidden="true">
-                <img data-favicon src="https://www.google.com/s2/favicons?domain=${host}&sz=32" alt="" loading="lazy">
+        <a href="${link.url}" class="link-card" target="_blank" rel="noopener noreferrer">
+            <div class="link-left">
+                <div class="link-favicon" aria-hidden="true">
+                    <img data-favicon src="https://www.google.com/s2/favicons?domain=${host}&sz=32" alt="" loading="lazy">
+                </div>
+                <button class="copy-btn" data-url="${link.url}" data-title="${link.title.replace(/"/g, '&quot;')}" aria-label="Copy link">
+                    <span class="material-icons">content_copy</span>
+                </button>
             </div>
             <div class="link-info">
                 <span class="link-title">${title}</span>
@@ -173,14 +226,6 @@ function renderBookmarkCard(link) {
                 <span class="link-tags">${link.tags.map(t =>
                     `<span class="link-tag${selectedTags.has(t) ? ' active' : ''}">${t}</span>`
                 ).join('')}</span>
-            </div>
-            <div class="link-actions">
-                <button class="link-action open-new-btn" data-url="${link.url}" aria-label="Open in new tab">
-                    <span class="material-icons">open_in_new</span>
-                </button>
-                <button class="link-action copy-btn" data-url="${link.url}" data-title="${link.title.replace(/"/g, '&quot;')}" aria-label="Copy link">
-                    <span class="material-icons">link</span>
-                </button>
             </div>
         </a>
     `;
@@ -262,7 +307,76 @@ function renderBookmarks() {
     wireFaviconFallback(grid);
 }
 
+function renderCategoryFilter() {
+    const container = document.getElementById('category-filter');
+    const categories = getAllCategories();
+
+    let html = '';
+
+    // "All" pill - always visible
+    html += `<button class="filter-pill${!selectedCategory ? ' selected' : ''}" data-category="all">All</button>`;
+
+    if (!selectedCategory) {
+        // No category selected: show all category pills
+        categories.forEach(cat => {
+            html += `<button class="filter-pill" data-category="${cat}">${cat}</button>`;
+        });
+    } else {
+        // Category selected: show only selected category + sections
+        html += `<button class="filter-pill selected" data-category="${selectedCategory}">${selectedCategory}</button>`;
+
+        // Get sections for selected category
+        const sections = getSectionsForCategory(selectedCategory);
+
+        if (sections.length > 0) {
+            // Add visual divider
+            html += `<span class="filter-divider"></span>`;
+
+            // Section pills
+            sections.forEach(sec => {
+                const isSelected = selectedSection === sec;
+                html += `<button class="filter-pill section-pill${isSelected ? ' selected' : ''}" data-section="${sec}">${sec}</button>`;
+            });
+        }
+    }
+
+    container.innerHTML = html;
+    updateFilterScrollFade();
+}
+
+function updateFilterScrollFade() {
+    const container = document.getElementById('category-filter');
+    const wrapper = document.getElementById('category-filter-wrapper');
+    const isAtEnd = container.scrollLeft + container.clientWidth >= container.scrollWidth - 5;
+    wrapper.classList.toggle('at-end', isAtEnd);
+}
+
+function selectCategory(category) {
+    if (category === 'all' || category === selectedCategory) {
+        // Clicking "All" or clicking selected category = reset
+        selectedCategory = null;
+        selectedSection = null;
+    } else {
+        selectedCategory = category;
+        selectedSection = null;  // Reset section when changing category
+    }
+    updateURLParams();
+    render();
+}
+
+function selectSection(section) {
+    if (selectedSection === section) {
+        // Toggle off
+        selectedSection = null;
+    } else {
+        selectedSection = section;
+    }
+    updateURLParams();
+    render();
+}
+
 function render() {
+    renderCategoryFilter();
     renderTagList();
     renderBookmarks();
 }
@@ -279,6 +393,10 @@ function toggleTag(tag) {
 
 function clearFilters() {
     selectedTags.clear();
+    selectedCategory = null;
+    selectedSection = null;
+    searchQuery = '';
+    document.getElementById('search-input').value = '';
     updateURLParams();
     render();
 }
@@ -325,8 +443,29 @@ function setupEventListeners() {
         }
     });
 
+    // Category/Section filter click handler
+    const categoryFilter = document.getElementById('category-filter');
+    categoryFilter.addEventListener('click', (e) => {
+        const pill = e.target.closest('.filter-pill');
+        if (!pill) return;
+
+        if (pill.dataset.section) {
+            selectSection(pill.dataset.section);
+        } else if (pill.dataset.category) {
+            selectCategory(pill.dataset.category);
+        }
+    });
+
+    // Update fade indicator on scroll
+    categoryFilter.addEventListener('scroll', updateFilterScrollFade);
+
     // Clear filters button
     document.getElementById('clear-filters').addEventListener('click', clearFilters);
+
+    // Mobile tags toggle
+    document.getElementById('toggle-tags').addEventListener('click', () => {
+        document.querySelector('.sidebar').classList.toggle('expanded');
+    });
 
     // Search input
     const searchInput = document.getElementById('search-input');
@@ -343,14 +482,6 @@ function setupEventListeners() {
 
     // Action button handlers (delegated)
     document.getElementById('bookmarks-grid').addEventListener('click', async (e) => {
-        const openNewBtn = e.target.closest('.open-new-btn');
-        if (openNewBtn) {
-            e.preventDefault();
-            e.stopPropagation();
-            window.open(openNewBtn.dataset.url, '_blank', 'noopener,noreferrer');
-            return;
-        }
-
         const copyBtn = e.target.closest('.copy-btn');
         if (copyBtn) {
             e.preventDefault();
@@ -369,13 +500,9 @@ function setupEventListeners() {
     // Keyboard shortcuts
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
-            if (selectedTags.size > 0) {
+            const hasAnyFilter = selectedTags.size > 0 || selectedCategory || searchQuery.trim();
+            if (hasAnyFilter) {
                 clearFilters();
-            } else if (searchInput.value) {
-                searchInput.value = '';
-                searchQuery = '';
-                updateURLParams();
-                render();
             }
             searchInput.blur();
             return;
