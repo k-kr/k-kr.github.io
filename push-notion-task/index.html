@@ -71,7 +71,8 @@
         const dbRes = await fetch('https://api.notion.com/v1/databases/' + dbId, {
           headers: {
             'Authorization': 'Bearer ' + token,
-            'Notion-Version': '2025-09-03'
+            'Notion-Version': '2025-09-03',
+            'Access-Control-Allow-Origin': '*'
           }
         });
 
