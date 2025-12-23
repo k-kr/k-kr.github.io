@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create Notion Task</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+      background: #191919;
+      color: #fff;
+    }
+    .container {
+      text-align: center;
+      padding: 2rem;
+    }
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid #333;
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 1rem;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .success { color: #4ade80; }
+    .error { color: #f87171; }
+    button {
+      margin-top: 1rem;
+      padding: 0.5rem 1.5rem;
+      background: #333;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover { background: #444; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div id="status">
+      <div class="spinner"></div>
+      <p>Creating task...</p>
+    </div>
+  </div>
+
+  <script>
+    (async function() {
+      const params = new URLSearchParams(window.location.search);
+      const emailLink = params.get('url');
+      const taskName = params.get('task') || 'Email Task';
+      const token = params.get('key');
+      const dbId = params.get('db');
+
+      const statusEl = document.getElementById('status');
+
+      if (!emailLink || !token || !dbId) {
+        statusEl.innerHTML = '<p class="error">Missing required parameters (url, key, db)</p>';
+        return;
+      }
+
+      try {
+        // Step 1: Get data_source_id
+        const dbRes = await fetch('https://api.notion.com/v1/databases/' + dbId, {
+          headers: {
+            'Authorization': 'Bearer ' + token,
+            'Notion-Version': '2025-09-03'
+          }
+        });
+
+        if (!dbRes.ok) {
+          const err = await dbRes.json();
+          throw new Error(err.message || 'Failed to fetch database');
+        }
+
+        const dbData = await dbRes.json();
+        const dataSourceId = dbData.data_sources[0].id;
+
+        // Step 2: Create page
+        const pageRes = await fetch('https://api.notion.com/v1/pages', {
+          method: 'POST',
+          headers: {
+            'Authorization': 'Bearer ' + token,
+            'Content-Type': 'application/json',
+            'Notion-Version': '2025-09-03'
+          },
+          body: JSON.stringify({
+            parent: {
+              type: 'data_source_id',
+              data_source_id: dataSourceId
+            },
+            properties: {
+              'Name': { title: [{ text: { content: taskName } }] },
+              'URL': { url: emailLink }
+            }
+          })
+        });
+
+        if (!pageRes.ok) {
+          const err = await pageRes.json();
+          throw new Error(err.message || 'Failed to create page');
+        }
+
+        const page = await pageRes.json();
+        statusEl.innerHTML = `
+          <p class="success">✓ Task created!</p>
+          <button onclick="window.close()">Close</button>
+        `;
+
+      } catch (err) {
+        statusEl.innerHTML = `
+          <p class="error">Error: ${err.message}</p>
+          <button onclick="window.close()">Close</button>
+        `;
+      }
+    })();
+  </script>
+</body>
+</html>
