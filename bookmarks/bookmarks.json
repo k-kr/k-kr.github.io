@@ -2214,6 +2214,28 @@
         "writing",
         "tool"
       ]
+    },
+    {
+      "title": "devina.io",
+      "url": "https://devina.io/",
+      "description": "77 advanced tools for developers, designers and content editors",
+      "category": "Dev / Coding",
+      "section": "Developer Tools",
+      "tags": [
+        "coding",
+        "tool"
+      ]
+    },
+    {
+      "title": "Bootstrap Icons",
+      "url": "https://icons.getbootstrap.com/",
+      "description": "Official open source SVG icon library for Bootstrap",
+      "category": "Dev / Design",
+      "section": "Images - Icons",
+      "tags": [
+        "design",
+        "icons"
+      ]
     }
   ]
 }
