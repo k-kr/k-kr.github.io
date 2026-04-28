@@ -2236,6 +2236,32 @@
         "design",
         "icons"
       ]
+    },
+    {
+      "title": "Lunacy",
+      "url": "https://icons8.com/lunacy",
+      "description": "Vector graphic design tool for UI/UX and web",
+      "category": "Dev / Design",
+      "section": "Images - Tools",
+      "tags": [
+        "design",
+        "images",
+        "tool",
+        "web-dev"
+      ]
+    },
+    {
+      "title": "Graphite",
+      "url": "https://graphite.art/",
+      "description": "Open-source vector graphics editor and procedural design tool",
+      "category": "Dev / Design",
+      "section": "Images - Tools",
+      "tags": [
+        "design",
+        "images",
+        "tool",
+        "open-source"
+      ]
     }
   ]
 }
