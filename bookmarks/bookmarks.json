@@ -2292,13 +2292,24 @@
       "title": "PowerColors",
       "url": "https://www.powercolors.dev/",
       "description": "Color palette generator for quick pasting into Power Apps",
-      "category": "Dev / Coding",
+      "category": "Dev / Design",
       "section": "Microsoft 365",
       "tags": [
         "design",
         "colors",
         "microsoft-pa",
         "tool"
+      ]
+    },
+    {
+      "title": "PowerApps UI",
+      "url": "https://www.powerappsui.com/",
+      "description": "Microsoft Power Apps UI Components",
+      "category": "Dev / Coding",
+      "section": "Microsoft 365",
+      "tags": [
+        "microsoft-pa",
+        "open-source"
       ]
     }
   ]
