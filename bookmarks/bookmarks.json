@@ -2262,6 +2262,44 @@
         "tool",
         "open-source"
       ]
+    },
+    {
+      "title": "Iconify Browse Icons",
+      "url": "https://icon-sets.iconify.design/",
+      "description": "Unified open source icon search engine and framework",
+      "category": "Dev / Design",
+      "section": "Images - Icons",
+      "tags": [
+        "design",
+        "icons",
+        "open-source",
+        "tool"
+      ]
+    },
+    {
+      "title": "PowerIcons",
+      "url": "https://www.powericons.dev/",
+      "description": "Tool for customizing and copy-pasting SVG icons into Power Apps",
+      "category": "Dev / Design",
+      "section": "Microsoft 365",
+      "tags": [
+        "microsoft-pa",
+        "icons",
+        "tool"
+      ]
+    },
+    {
+      "title": "PowerColors",
+      "url": "https://www.powercolors.dev/",
+      "description": "Color palette generator for quick pasting into Power Apps",
+      "category": "Dev / Coding",
+      "section": "Microsoft 365",
+      "tags": [
+        "design",
+        "colors",
+        "microsoft-pa",
+        "tool"
+      ]
     }
   ]
 }
